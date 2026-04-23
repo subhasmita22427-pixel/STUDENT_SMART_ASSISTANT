@@ -9,23 +9,23 @@ PROGRAM SUMMARY:
 
 # Import the Classes from your modules
 from auth import AuthManager
-from academics.assignment import AssignmentManager
-from academics.attendance import AttendanceTracker
-from academics.marks import MarksManager
-from academics.syllabus import SyllabusManager
-from utilities.todo import TodoManager
-from utilities.expenses import ExpenseManager
+from academics.assignment import assignmentmanager
+from academics.attendance import attendancetracker
+from academics.marks import marksmanager
+from academics.syllabus import syllabusmanager
+from utilities.todo import todomanager
+from utilities.expenses import expensemanager
 from utilities.calculator import SmartCalculator
 
 # OBJECT INITIALIZATION 
 # Create one instance of each class to use throughout the program
 auth_obj = AuthManager()
-assign_obj = AssignmentManager()
-attend_obj = AttendanceTracker()
-marks_obj = MarksManager()
-syll_obj = SyllabusManager()
-todo_obj = TodoManager()
-exp_obj = ExpenseManager()
+assign_obj = assignmentmanager()
+attend_obj = attendancetracker()
+marks_obj = marksmanager()
+syll_obj = syllabusmanager()
+todo_obj = todomanager()
+exp_obj = expensemanager()
 calc_obj = SmartCalculator()
 
 # main menu
