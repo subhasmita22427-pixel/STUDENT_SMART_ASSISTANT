@@ -1,0 +1,4 @@
+python,20,25,40
+mathematics,5,10,15
+data science,22,20,50
+web tech,15,15,40
