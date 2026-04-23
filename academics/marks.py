@@ -1,127 +1,82 @@
-file = "data/marks.txt"
+"""
+program summary:
+* re-engineered the marksmanager class to utilize pandas for automated academic performance analytics.
+* vectorized operations: replaces manual loops with pandas column-wise addition to calculate 'total marks' instantly.
+* performance insight: employs '.idxmax()' and '.idxmin()' methods to identify the highest and lowest scoring subjects.
+* boolean indexing: uses conditional filtering (df[df['total'] < 35]) to isolate subjects requiring a re-test.
+* data visualization: leverages the pandas dataframe structure to print a clean, aligned mark sheet.
+"""
 
+import pandas as pd
 
-# ---------------- ADD MARKS ----------------
-def add_marks():
-    try:
-        subject = input("Enter subject: ")
-        internal = int(input("Enter internal marks: "))
-        mid = int(input("Enter mid marks: "))
-        end = int(input("Enter end marks: "))
+class marksmanager:
+    def __init__(self):
+        # path to our marks text file
+        self.file = "data/marks.txt"
 
-        # tuple used
-        marks = (internal, mid, end)
+    # function to add marks manually
+    def add_marks(self): 
+        try:
+            subject = input("enter subject name: ")
+            internal = int(input("internal marks: "))
+            mid = int(input("mid marks: "))
+            end = int(input("end marks: "))
 
-        f = open(file, "a")
-        f.write(subject + "," + str(marks[0]) + "," + str(marks[1]) + "," + str(marks[2]) + "\n")
-        f.close()
+            # saving data in a simple csv format
+            with open(self.file, "a") as f:
+                f.write(f"{subject},{internal},{mid},{end}\n")
+            print("marks saved successfully")
+            
+        except ValueError:
+            print("error: please enter numbers for marks")
+        except:
+            print("something went wrong")
 
-        print("Marks added")
+    # function to view marks and check performance
+    def view_marks(self): 
+        try:
+            # reading the file using pandas
+            df = pd.read_csv(self.file, names=["subject", "internal", "mid", "end"])
 
-    except:
-        print("Invalid input")
+            if df.empty:
+                print("no data found")
+                return
 
+            # calculating totals for all subjects at once
+            df["total"] = df["internal"] + df["mid"] + df["end"]
 
-# ---------------- VIEW MARKS ----------------
-def view_marks():
-    try:
-        f = open(file, "r")
-        data = f.readlines()
-        f.close()
+            print("\n--- your marksheet ---")
+            # printing the table without index numbers
+            print(df[["subject", "total"]].to_string(index=False))
 
-        if len(data) == 0:
-            print("No marks found")
-            return
+            # performance logic: finding max and min totals
+            # idxmax and idxmin find the top and bottom rows
+            top_sub = df.loc[df["total"].idxmax()]
+            low_sub = df.loc[df["total"].idxmin()]
 
-        print("\nMarks:")
+            print(f"\nbest subject: {top_sub['subject']} ({top_sub['total']} marks)")
+            print(f"weakest subject: {low_sub['subject']} ({low_sub['total']} marks)")
 
-        for line in data:
-            parts = line.strip().split(",")
+        except FileNotFoundError:
+            print("no marks file found yet")
+        except:
+            print("error reading the file")
 
-            if len(parts) == 4:
-                subject = parts[0]
-                internal = int(parts[1])
-                mid = int(parts[2])
-                end = int(parts[3])
+    # function to find subjects with marks below 35
+    def check_fail(self): 
+        try:
+            df = pd.read_csv(self.file, names=["subject", "internal", "mid", "end"])
+            df["total"] = df["internal"] + df["mid"] + df["end"]
 
-                total = internal + mid + end
+            # filtering: keeping only rows where total is less than 35
+            failed_list = df[df["total"] < 35]
 
-                print("Subject:", subject,
-                      "| Total:", total)
+            print("\n--- fail check ---")
+            if failed_list.empty:
+                print("congratulations! you passed everything")
+            else:
+                print("you scored below 35 in these subjects:")
+                print(failed_list[["subject", "total"]].to_string(index=False))
 
-    except:
-        print("Error reading marks")
-
-
-# ---------------- CHECK FAIL ----------------
-def check_fail():
-    try:
-        f = open(file, "r")
-        data = f.readlines()
-        f.close()
-
-        if len(data) == 0:
-            print("No marks data found")
-            return
-
-        failed_subjects = set()   # set used
-
-        for line in data:
-            parts = line.strip().split(",")
-
-            if len(parts) == 4:
-                subject = parts[0]
-                internal = int(parts[1])
-                mid = int(parts[2])
-                end = int(parts[3])
-
-                total = internal + mid + end
-
-                if total < 35:
-                    failed_subjects.add(subject)
-
-        print("\nFailed Subjects:")
-
-        if len(failed_subjects) == 0:
-            print("None")
-        else:
-            for sub in failed_subjects:
-                print(sub)
-
-    except:
-        print("Error checking results")
-
-
-# ---------------- ANALYZE MARKS ----------------
-def analyze_marks():
-    try:
-        f = open(file, "r")
-        data = f.readlines()
-        f.close()
-
-        if len(data) == 0:
-            print("No marks data found")
-            return
-
-        total_marks = 0
-        count = 0
-
-        for line in data:
-            parts = line.strip().split(",")
-
-            if len(parts) == 4:
-                internal = int(parts[1])
-                mid = int(parts[2])
-                end = int(parts[3])
-
-                total = internal + mid + end
-
-                total_marks += total
-                count += 1
-
-        avg = total_marks / count
-
-        print("\nAverage Marks:", avg)
-
-    except:
-        print("Error analyzing marks")
+        except:
+            print("error checking for failures")

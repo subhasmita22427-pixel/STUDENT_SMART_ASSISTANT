@@ -1,85 +1,109 @@
+"""
+program summary:
+* managed dual-track academic progress for 'college' and 'self-study' courses within the 'syllabusmanager' class.
+* data categorization: introduces a 'type' attribute to distinguish between institutional coursework and personal learning.
+* add_topic(): uses conditional logic (if/else) to tag new entries based on user selection.
+* view_progress(): 
+    - implements pandas boolean indexing (filtering) to split the master dataframe into two distinct tables.
+    - calculates independent progress percentages for both categories.
+* user interface: organizes output using visual separators to clarify the distinction between different course types.
+"""
+
 import pandas as pd
 
-file = "data/syllabus.csv"
+class syllabusmanager:
+    def __init__(self):
+        # path to our syllabus csv file
+        self.file = "data/syllabus.csv"
 
-
-# add topic
-def add_topic():
-    try:
-        subject = input("Enter subject: ")
-        topic = input("Enter topic: ")
-
-        new_data = {
-            "Subject": subject,
-            "Topic": topic,
-            "Status": "Pending"
-        }
-
+    # function to add new topics
+    def add_topic(self):
         try:
-            df = pd.read_csv(file)
+            print("\nselect type: 1. college | 2. self-study")
+            choice = input("choice: ")
+            # simple if/else for course type
+            course_type = "self" if choice == "2" else "college"
+            
+            subject = input("subject name: ")
+            topic = input("topic name: ")
+
+            # dictionary to structure new data
+            new_row = {
+                "type": course_type,
+                "subject": subject,
+                "topic": topic,
+                "status": "pending"
+            }
+
+            try:
+                # opening the existing data file
+                df = pd.read_csv(self.file)
+            except:
+                # creating headers if file missing
+                df = pd.DataFrame(columns=["type", "subject", "topic", "status"])
+
+            # combining new row with existing table
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            df.to_csv(self.file, index=False)
+
+            print(f"saved to {course_type} list")
+
         except:
-            df = pd.DataFrame(columns=["Subject", "Topic", "Status"])
+            print("error: could not save topic")
 
-        df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
+    # function to finish a topic
+    def mark_done(self):
+        try:
+            df = pd.read_csv(self.file)
+            if df.empty:
+                print("list is empty")
+                return
 
-        df.to_csv(file, index=False)
+            print("\n--- current syllabus ---")
+            print(df[["type", "subject", "topic", "status"]])
+            
+            idx = int(input("\nenter index number to finish: "))
 
-        print("Topic added")
+            if 0 <= idx < len(df):
+                # .at updates a single cell
+                df.at[idx, "status"] = "done"
+                df.to_csv(self.file, index=False)
+                print("topic marked as completed")
+            else:
+                print("invalid index number")
 
-    except:
-        print("Error adding topic")
+        except:
+            print("error updating the topic")
 
+    # viewing progress with two tables
+    def view_progress(self):
+        try:
+            df = pd.read_csv(self.file)
+            if df.empty:
+                print("no data found")
+                return
 
-# mark topic complete
-def mark_done():
-    try:
-        df = pd.read_csv(file)
+            # filtering: splitting table by type
+            college_df = df[df["type"] == "college"]
+            self_df = df[df["type"] == "self"]
 
-        if df.empty:
-            print("No topics found")
-            return
+            print("\n--- college syllabus ---")
+            if college_df.empty:
+                print("no college topics found")
+            else:
+                print(college_df[["subject", "topic", "status"]].to_string(index=False))
+                # calculating progress percentage manually
+                done = len(college_df[college_df["status"] == "done"])
+                print(f"college progress: {(done/len(college_df))*100:.2f}%")
 
-        print(df)
+            print("\n--- self-study syllabus ---")
+            if self_df.empty:
+                print("no self-study topics found")
+            else:
+                print(self_df[["subject", "topic", "status"]].to_string(index=False))
+                # using len for percentage math
+                s_done = len(self_df[self_df["status"] == "done"])
+                print(f"self-study progress: {(s_done/len(self_df))*100:.2f}%")
 
-        n = int(input("Enter topic number to mark complete: "))
-
-        if n < 1 or n > len(df):
-            print("Invalid choice")
-            return
-
-        df.at[n-1, "Status"] = "Done"
-
-        df.to_csv(file, index=False)
-
-        print("Topic marked as complete")
-
-    except Exception as e:
-        print("Error updating topic:", e)
-
-
-# view progress
-def view_progress():
-    try:
-        df = pd.read_csv(file)
-
-        if df.empty:
-            print("No topics found")
-            return
-
-        print("\nSyllabus:")
-        print(df)
-
-       
-        subjects = set(df["Subject"])    #set
-
-        total = len(df)
-        done = len(df[df["Status"] == "Done"])
-
-        percent = (done / total) * 100
-
-        print("\nUnique Subjects:", subjects)
-
-        print("Progress: {:.2f}%".format(percent))
-
-    except:
-        print("Error reading syllabus")
+        except:
+            print("error loading the progress")

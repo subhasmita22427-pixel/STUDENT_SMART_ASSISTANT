@@ -1,18 +1,34 @@
-from auth import signup, login
+"""
+PROGRAM SUMMARY:
+* Acts as the OOP Orchestrator for the Student Smart Assistant, replacing functional calls with Object-Oriented Method calls.
+* Instance Management: Initializes all Manager objects (Auth, Assignment, Attendance, etc.) at the start of the execution.
+* Encapsulation: Ensures that the Main Menu does not need to know 'how' data is saved, only 'which' method to call.
+* Navigation Logic: Maintains a robust nested-loop structure, allowing seamless transition between academic and utility sub-menus.
+* Integration: Synchronizes multiple specialized modules into a single interactive terminal interface.
+"""
 
-# academics
-from academics.assignment import add_assignment, view_assignments, mark_complete
-from academics.attendance import add_attendance, view_attendance, check_shortage
-from academics.marks import view_marks, check_fail  
-from academics.syllabus import add_topic, mark_done, view_progress
+# Import the Classes from your modules
+from auth import AuthManager
+from academics.assignment import AssignmentManager
+from academics.attendance import AttendanceTracker
+from academics.marks import MarksManager
+from academics.syllabus import SyllabusManager
+from utilities.todo import TodoManager
+from utilities.expenses import ExpenseManager
+from utilities.calculator import SmartCalculator
 
-# utilities
-from utilities.todo import add_task, view_tasks, mark_done as todo_done, search_task
-from utilities.expenses import add_expense, view_expenses
-from utilities.calculator import *
+# OBJECT INITIALIZATION 
+# Create one instance of each class to use throughout the program
+auth_obj = AuthManager()
+assign_obj = AssignmentManager()
+attend_obj = AttendanceTracker()
+marks_obj = MarksManager()
+syll_obj = SyllabusManager()
+todo_obj = TodoManager()
+exp_obj = ExpenseManager()
+calc_obj = SmartCalculator()
 
-
-#main menu
+# main menu
 def main_menu():
     while True:
         print("\n----- STUDENT SMART ASSISTANT -----")
@@ -23,19 +39,15 @@ def main_menu():
         choice = input("Enter choice: ")
 
         if choice == "1":
-            signup()
-
+            auth_obj.signup()
         elif choice == "2":
-            if login():
+            if auth_obj.login():
                 student_menu()
-
         elif choice == "3":
             print("Exiting...")
             break
-
         else:
             print("Invalid choice")
-
 
 # student menu
 def student_menu():
@@ -72,8 +84,8 @@ def student_menu():
         else:
             print("Invalid choice")
 
+# --- SUB-MENUS (Updated to use Objects) ---
 
-#assignment
 def assignment_menu():
     while True:
         print("\n--- ASSIGNMENT MENU ---")
@@ -81,22 +93,12 @@ def assignment_menu():
         print("2. View Assignments")
         print("3. Mark Complete")
         print("4. Back")
-
         c = input("Enter choice: ")
+        if c == "1": assign_obj.add_assignment()
+        elif c == "2": assign_obj.view_assignments()
+        elif c == "3": assign_obj.mark_complete()
+        elif c == "4": break
 
-        if c == "1":
-            add_assignment()
-        elif c == "2":
-            view_assignments()
-        elif c == "3":
-            mark_complete()
-        elif c == "4":
-            break
-        else:
-            print("Invalid choice")
-
-
-# attendance
 def attendance_menu():
     while True:
         print("\n--- ATTENDANCE MENU ---")
@@ -104,41 +106,23 @@ def attendance_menu():
         print("2. View Attendance")
         print("3. Check Shortage")
         print("4. Back")
-
         c = input("Enter choice: ")
+        if c == "1": attend_obj.add_attendance()
+        elif c == "2": attend_obj.view_attendance()
+        elif c == "3": attend_obj.check_shortage()
+        elif c == "4": break
 
-        if c == "1":
-            add_attendance()
-        elif c == "2":
-            view_attendance()
-        elif c == "3":
-            check_shortage()
-        elif c == "4":
-            break
-        else:
-            print("Invalid choice")
-
-
-# marks
 def marks_menu():
     while True:
         print("\n--- MARKS MENU ---")
         print("1. View Marks")
         print("2. Check Fail")
         print("3. Back")
-
         c = input("Enter choice: ")
+        if c == "1": marks_obj.view_marks()
+        elif c == "2": marks_obj.check_fail()
+        elif c == "3": break
 
-        if c == "1":
-            view_marks()
-        elif c == "2":
-            check_fail()
-        elif c == "3":
-            break
-        else:
-            print("Invalid choice")
-
-#syllabus
 def syllabus_menu():
     while True:
         print("\n--- SYLLABUS MENU ---")
@@ -146,22 +130,12 @@ def syllabus_menu():
         print("2. Mark Complete")
         print("3. View Progress")
         print("4. Back")
-
         c = input("Enter choice: ")
+        if c == "1": syll_obj.add_topic()
+        elif c == "2": syll_obj.mark_done()
+        elif c == "3": syll_obj.view_progress()
+        elif c == "4": break
 
-        if c == "1":
-            add_topic()
-        elif c == "2":
-            mark_done()
-        elif c == "3":
-            view_progress()
-        elif c == "4":
-            break
-        else:
-            print("Invalid choice")
-
-
-# todo
 def todo_menu():
     while True:
         print("\n--- TO-DO MENU ---")
@@ -170,44 +144,24 @@ def todo_menu():
         print("3. Mark Done")
         print("4. Search Task")
         print("5. Back")
-
         c = input("Enter choice: ")
+        if c == "1": todo_obj.add_task()
+        elif c == "2": todo_obj.view_tasks()
+        elif c == "3": todo_obj.mark_done()
+        elif c == "4": todo_obj.search_task()
+        elif c == "5": break
 
-        if c == "1":
-            add_task()
-        elif c == "2":
-            view_tasks()
-        elif c == "3":
-            todo_done()
-        elif c == "4":
-            search_task()
-        elif c == "5":
-            break
-        else:
-            print("Invalid choice")
-
-
-# expense
 def expense_menu():
     while True:
         print("\n--- EXPENSE MENU ---")
         print("1. Add Expense")
         print("2. View Expenses")
         print("3. Back")
-
         c = input("Enter choice: ")
+        if c == "1": exp_obj.add_expense()
+        elif c == "2": exp_obj.view_expenses()
+        elif c == "3": break
 
-        if c == "1":
-            add_expense()
-        elif c == "2":
-            view_expenses()
-        elif c == "3":
-            break
-        else:
-            print("Invalid choice")
-
-
-# calculator
 def calculator_menu():
     while True:
         print("\n--- CALCULATOR MENU ---")
@@ -215,17 +169,11 @@ def calculator_menu():
         print("2. Array Calculator")
         print("3. Matrix Calculator")
         print("4. Back")
-
         ch = input("Enter choice: ")
+        if ch == "1": calc_obj.normal_calculator()
+        elif ch == "2": calc_obj.array_calculator()
+        elif ch == "3": calc_obj.matrix_calculator()
+        elif ch == "4": break
 
-        if ch == "1":
-            normal_calculator()
-        elif ch == "2":
-            array_calculator()
-        elif ch == "3":
-            matrix_calculator()
-        elif ch == "4":
-            break
-        else:
-            print("Invalid choice")
-main_menu()
+if __name__ == "__main__":
+    main_menu()

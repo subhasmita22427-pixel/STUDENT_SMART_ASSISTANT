@@ -1,115 +1,105 @@
+"""
+program summary:
+* migrates the attendance module into the 'attendancetracker' class to implement oop principles.
+* encapsulation: stores the 'data/attendance.csv' path as a class attribute (self.file) for centralized access.
+* methods: converts standalone logic into class methods (add_attendance, view_attendance, check_shortage) using 'self'.
+* data processing: uses pandas for csv operations and numpy arrays for calculating 75% attendance criteria and skip-limits.
+* state access: employs 'self' to ensure that every method within the class targets the same file and configuration.
+"""
+
 import numpy as np
 import pandas as pd
 
-file = "data/attendance.csv"
+class attendancetracker:
+    def __init__(self):
+        # path for the csv file
+        self.file = "data/attendance.csv"
 
-
-# add attendenve
-def add_attendance():
-    try:
-        subject = input("Enter subject: ")
-        attended = int(input("Enter classes attended: "))
-        total = int(input("Enter total classes: "))
-
-        new_data = {
-            "Subject": subject,
-            "Attended": attended,
-            "Total": total
-        }
-
+    # function to add new subject records
+    def add_attendance(self):
         try:
-            df = pd.read_csv(file)
+            subject = input("enter subject name: ")
+            attended = int(input("classes attended: "))
+            total = int(input("total classes held: "))
+
+            new_row = {
+                "subject": subject,
+                "attended": attended,
+                "total": total
+            }
+
+            try:
+                # trying to open existing file
+                df = pd.read_csv(self.file)
+            except:
+                # making a new table if file is missing
+                df = pd.DataFrame(columns=["subject", "attended", "total"])
+
+            # adding the row to our table
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            df.to_csv(self.file, index=False)
+
+            print("attendance saved successfully")
         except:
-            df = pd.DataFrame(columns=["Subject", "Attended", "Total"])
+            print("error: could not save data")
 
-        df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
+    # function to view subject wise percentage
+    def view_attendance(self):
+        try:
+            df = pd.read_csv(self.file)
+            if df.empty:
+                print("no data available")
+                return
 
-        df.to_csv(file, index=False)
+            print("\n--- current records ---")
+            for i, row in df.iterrows():
+                # simple calculation for percentage
+                perc = (row["attended"] / row["total"]) * 100
+                print(f"{i+1} | {row['subject']} | {row['attended']}/{row['total']} | {perc:.2f}%")
+        except:
+            print("error loading attendance")
 
-        print("Attendance added")
+    # function to calculate bunk limits using numpy
+    def check_shortage(self):
+        try:
+            att = int(input("classes attended: "))
+            total = int(input("total classes till now: "))
+            rem = int(input("remaining classes in semester: "))
 
-    except:
-        print("Error adding attendance")
+            if total <= 0:
+                print("invalid total classes")
+                return
 
+            # using numpy array for calculation
+            stats = np.array([att, total, rem])
+            
+            # current attendance percentage
+            curr_perc = (stats[0] / stats[1]) * 100
+            print(f"current percentage: {curr_perc:.2f}%")
 
-#view attendence
-def view_attendance():
-    try:
-        df = pd.read_csv(file)
+            # final total classes in semester
+            final_total = stats[1] + stats[2]
+            # classes needed to hit 75%
+            needed = (0.75 * final_total) - stats[0]
 
-        if df.empty:
-            print("No attendance data found")
-            return
-
-        print("\nAttendance Record:")
-
-        for i, row in df.iterrows():
-            percent = (row["Attended"] / row["Total"]) * 100
-            print(i+1, "|", row["Subject"],
-                  "|", row["Attended"], "/", row["Total"],
-                  "| {:.2f}%".format(percent))
-
-    except:
-        print("Error reading attendance")
-
-
-#check shortage 
-def check_shortage():
-    try:
-        attended = int(input("Enter classes attended: "))
-        total = int(input("Enter total classes till now: "))
-        remaining = int(input("Enter remaining classes in semester: "))
-
-        if total <= 0:
-            print("No classes conducted yet")
-            return
-
-        # tuple
-
-        data = (attended, total, remaining)
-
-        # numpy
-
-        arr = np.array(data)
-
-        attended = arr[0]
-        total = arr[1]
-        remaining = arr[2]
-
-        current_percent = (attended / total) * 100
-        print("Current Attendance: {:.2f}%".format(current_percent))
-
-        final_total = total + remaining
-        min_required = 0.75 * final_total
-
-        needed = min_required - attended
-
-        if needed <= 0:
-            print("You are already safe above 75%")
-            print("You can skip all remaining classes:", remaining)
-        else:
-            max_bunk = remaining - needed
-
-            if max_bunk < 0:
-                print("Warning: You are below 75%")
-                print("You must attend all remaining classes")
+            if needed <= 0:
+                print("you are safe! you can skip all remaining classes")
             else:
-                print("You can skip", int(max_bunk), "classes safely")
-                print("If you skip more than this, you may get debarred")
+                # finding how many we can skip safely
+                bunk_limit = stats[2] - needed
+                if bunk_limit < 0:
+                    print("warning: attend every class to improve")
+                else:
+                    print(f"you can skip {int(bunk_limit)} classes safely")
 
-        # pandas display
+            # summarizing in a pandas dataframe
+            df = pd.DataFrame({
+                "attended": [att],
+                "total": [total],
+                "remaining": [rem],
+                "percentage": [round(curr_perc, 2)]
+            })
+            print("\nquick summary:\n", df)
 
-        df = pd.DataFrame({
-            "Attended": [attended],
-            "Total": [total],
-            "Remaining": [remaining],
-            "Current %": [round(current_percent, 2)]
-        })
-
-        print("\nAttendance Analysis:")
-        print(df)
-
-    except ValueError:
-        print("Please enter valid numbers")
-    except:
-        print("Something went wrong")
+        except:
+            print("please enter numeric values")

@@ -1,96 +1,100 @@
-file = "data/assignments.txt"
+"""
+program summary:
+* re-engineered the assignmentmanager class to use pandas for better visualization and deadline tracking.
+* time logic: uses the 'datetime' module to compare the system clock with assignment deadlines.
+* dynamic tracking: uses a custom function with '.apply()' to label tasks as 'overdue' automatically.
+* pandas display: replaces standard loops with dataframe views for a professional look.
+* persistence: saves data back to 'data/assignments.txt' using '.to_csv()' while keeping the original format.
+"""
 
+import pandas as pd
+from datetime import datetime
 
-# add assignment
-def add_assignment():
-    try:
-        subject = input("Enter subject: ")
-        name = input("Enter assignment name: ")
-        deadline = input("Enter deadline: ")
+class assignmentmanager:
+    def __init__(self):
+        # path to our assignment data file
+        self.file = "data/assignments.txt"
 
-        #  list 
-        assignment = [subject, name, deadline, "Pending"]
+    # function to add a new task
+    def add_assignment(self):
+        try:
+            sub = input("enter subject: ")
+            task = input("enter task name: ")
+            date = input("enter deadline (dd-mm-yy): ")
 
-        f = open(file, "a")
-        f.write(",".join(assignment) + "\n")
-        f.close()
+            # every new assignment starts as pending
+            row = f"{sub},{task},{date},pending\n"
 
-        print("Assignment added")
+            # opening file in append mode
+            f = open(self.file, "a")
+            f.write(row)
+            f.close()
+            print("assignment added to list")
 
-    except:
-        print("Error adding assignment")
+        except:
+            print("error: could not save assignment")
 
+    # viewing tasks with automatic overdue check
+    def view_assignments(self):
+        try:
+            # loading data into a pandas table
+            df = pd.read_csv(self.file, names=["subject", "name", "deadline", "status"])
+            
+            if df.empty:
+                print("no tasks found")
+                return
 
-# view assignments
-def view_assignments():
-    try:
-        f = open(file, "r")
-        data = f.readlines()
-        f.close()
+            # getting today's date for comparison
+            now = datetime.now()
+            
+            # helper function to check dates row by row
+            def check_status(r):
+                if r["status"] == "done":
+                    return "completed"
+                
+                try:
+                    # strptime converts text into a date object
+                    target = datetime.strptime(r["deadline"], "%d-%m-%y")
+                    if target < now:
+                        return "overdue"
+                    return "pending"
+                except:
+                    return "date error"
 
-        if len(data) == 0:
-            print("No assignments found")
-            return
+            # applying the date logic to the whole table
+            df["live_status"] = df.apply(check_status, axis=1)
 
-        print("\nAssignments:")
+            print("\n--- assignment list ---")
+            # displaying specific columns in a clean way
+            print(df[["subject", "name", "deadline", "live_status"]].to_string(index=False))
 
-        assignments_list = []   #  list of assignments
+        except FileNotFoundError:
+            print("database file not found")
+        except:
+            print("error loading assignments")
 
-        for line in data:
-            parts = line.strip().split(",")
+    # function to mark a task as finished
+    def mark_complete(self):
+        try:
+            df = pd.read_csv(self.file, names=["subject", "name", "deadline", "status"])
+            
+            if df.empty:
+                print("nothing to update")
+                return
 
-            if len(parts) == 4:
-                assignments_list.append(parts)
+            print("\ncurrent list:")
+            print(df)
+            
+            idx = int(input("\nenter index number to finish: "))
 
-        for a in assignments_list:
-            print("Subject:", a[0],
-                  "| Name:", a[1],
-                  "| Deadline:", a[2],
-                  "| Status:", a[3])
+            if 0 <= idx < len(df):
+                # .at helps change a specific value in the table
+                df.at[idx, "status"] = "done"
+                # saving without headers to keep the file clean
+                df.to_csv(self.file, index=False, header=False)
+                print("task marked as done")
+            else:
+                print("invalid index")
 
-    except:
-        print("Error reading assignments")
-
-
-# mark complete
-def mark_complete():
-    try:
-        f = open(file, "r")
-        data = f.readlines()
-        f.close()
-
-        if len(data) == 0:
-            print("No assignments found")
-            return
-
-        assignments_list = []
-
-        # convert file data to list
-        for line in data:
-            parts = line.strip().split(",")
-            if len(parts) == 4:
-                assignments_list.append(parts)
-
-        # show list
-        for i in range(len(assignments_list)):
-            print(i+1, assignments_list[i])
-
-        n = int(input("Enter assignment number to mark complete: "))
-
-        if n < 1 or n > len(assignments_list):
-            print("Invalid choice")
-            return
-
-        # update list
-        assignments_list[n-1][3] = "Done"
-
-        # rewrite file
-        f = open(file, "w")
-        for a in assignments_list:
-            f.write(",".join(a) + "\n")
-        f.close()
-
-        print("Assignment marked as complete")
-
-    except Exception as e:
-        print("Error updating assignment:", e)
+        except:
+            print("error updating status")
