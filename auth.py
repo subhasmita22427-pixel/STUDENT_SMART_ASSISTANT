@@ -28,7 +28,6 @@ class AuthManager:
             return False
         return True
 
-
     # signup
     def signup(self):
         try:
