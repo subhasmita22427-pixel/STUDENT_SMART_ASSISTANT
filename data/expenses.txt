@@ -1,0 +1,4 @@
+food,250.0,20-04-26,spend,parents
+bus fare,50.0,21-04-26,spend,self-earned
+udemy course,499.0,22-04-26,investment,self-earned
+stationary,120.0,22-04-26,spend,parents
