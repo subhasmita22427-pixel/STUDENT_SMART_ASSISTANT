@@ -94,4 +94,4 @@ Calculator:
 
 Student Name: Subhasmita Swain  
 SAP ID: 590022427  
-Faculty Guidance: Virender Lkadyan
+Faculty Guidance: Virender Kadyan
