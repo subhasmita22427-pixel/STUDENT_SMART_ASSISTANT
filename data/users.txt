@@ -1,1 +1,3 @@
 subhasmita,subhasmita@stu.com,Xyz@123
+rohan sharma,rohan@mail.com,Pass@123
+sneha kapoor,sneha@mail.com,Admin#99
